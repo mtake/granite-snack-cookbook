@@ -17,6 +17,7 @@ echo "XXX LOGFILE ${LOGFILE}" | tee -a ${LOGFILE}
 echo "XXX DATETIME ${START_TIME_STR}" | tee -a ${LOGFILE}
 
 ENV=""
+ENV="BNB_CUDA_VERSION=118 ${ENV}"  # for CUDA_PATH=/opt/share/cuda-11.8
 ENV="TOKENIZERS_PARALLELISM=false ${ENV}"
 ENV="PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True ${ENV}"
 cmd="${ENV}python ${BASENAME}.py"
