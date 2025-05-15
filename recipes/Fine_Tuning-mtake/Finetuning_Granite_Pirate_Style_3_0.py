@@ -18,7 +18,7 @@
 # An experienced reader might note we could achieve the same thing with a system prompt, and he would be correct. We are doing this because it is difficult to show any new knowledge / actions in a fine-tuning using publicly available and permissively licensed datasets (because those datasets were often included in the initial training, so here we create a custom dataset and then show it had an effect when fine-tuned).
 
 # %%
-# %pip install -q "transformers>=4.45.2" datasets accelerate bitsandbytes peft trl
+# %pip install -q "transformers>=4.45.2" datasets accelerate bitsandbytes peft "trl==0.12.0"
 
 # %%
 import transformers
@@ -225,6 +225,8 @@ qlora_config = LoraConfig(
     bias="none"
 )
 
+max_seq_length = 250
+
 # Initialize the SFTTrainer
 training_args = TrainingArguments(
     output_dir="./results",
@@ -238,15 +240,12 @@ training_args = TrainingArguments(
     report_to="none"
 )
 
-max_seq_length = 250
-
 trainer = SFTTrainer(
     model=model,
     args=training_args,
     train_dataset=pirate_dataset['train'],
     eval_dataset=pirate_dataset['test'],
-    # tokenizer=tokenizer,
-    processing_class=tokenizer,  # >=0.12.0
+    processing_class=tokenizer,
     peft_config = qlora_config,
     formatting_func=formatting_prompts_func,
     data_collator=collator,
