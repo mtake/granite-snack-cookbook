@@ -245,7 +245,8 @@ trainer = SFTTrainer(
     args=training_args,
     train_dataset=pirate_dataset['train'],
     eval_dataset=pirate_dataset['test'],
-    tokenizer=tokenizer,
+    # tokenizer=tokenizer,
+    processing_class=tokenizer,  # >=0.12.0
     peft_config = qlora_config,
     formatting_func=formatting_prompts_func,
     data_collator=collator,
