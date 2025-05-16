@@ -26,6 +26,25 @@ import transformers
 transformers.set_seed(42)
 
 # %% [markdown]
+# ## Constants
+
+# %%
+import os
+
+# HF_USER = $(huggingface-cli whoami | head -n 1)
+HF_USER = "mikiotakeuchi"
+
+# input
+model_checkpoint = "ibm-granite/granite-3.0-2b-instruct"
+
+model_name = os.path.basename(model_checkpoint)
+adapter_name = f"{model_name}-pirate-adapter"
+
+# output
+hub_model_id = f"{HF_USER}/{adapter_name}"
+output_dir = f"results/{adapter_name}"
+
+# %% [markdown]
 # ## Dataset Preparation
 # 
 # We're using the `alespalla/chatbot_instruction_prompts` dataset, which contains various chat prompts and responses. This dataset will be used to create our `pirate talk` data set, where we keep the prompts the same, but we have a model change all answers to be spoken like a pirate.
@@ -58,7 +77,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments,
 from peft import LoraConfig
 from trl import SFTTrainer
 
-model_checkpoint = "ibm-granite/granite-3.0-2b-instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 
 bnb_config = BitsAndBytesConfig(
@@ -102,7 +120,6 @@ model_loadtime = timeit.default_timer() - start_time
 # 	+ Combines the transformed sets into a new `DatasetDict` named `pirate_dataset`
 
 # %%
-from transformers import pipeline
 import datasets
 
 def pirateify(batch):
@@ -229,8 +246,8 @@ max_seq_length = 250
 
 # Initialize the SFTTrainer
 training_args = TrainingArguments(
-    output_dir="./results",
-    hub_model_id="rawkintrevo/granite-3.0-2b-instruct-pirate-adapter",
+    output_dir=output_dir,
+    hub_model_id=hub_model_id,
     learning_rate=2e-4,
     per_device_train_batch_size=6,
     per_device_eval_batch_size=6,
@@ -277,7 +294,7 @@ training_time = timeit.default_timer() - start_time
 # Saving the model allows us to distribute it, use it in different environments, or continue fine-tuning it in the future. It's a critical step in the machine learning workflow, preserving the knowledge our model has acquired through the training process.
 
 # %%
-trainer.save_model("./results")
+trainer.save_model(output_dir)
 
 # %% [markdown]
 # ### Persisting the Model to Hugging Face Hub
