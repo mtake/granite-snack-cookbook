@@ -186,7 +186,7 @@ torch.cuda.empty_cache()
 
 # %%
 start_time = timeit.default_timer()
-input_text = "<|user>What does 'inheritance' mean?\n<|assistant|>\n"
+input_text = "<|user|>What does 'inheritance' mean?\n<|assistant|>\n"
 
 inputs = tokenizer(input_text, return_tensors="pt").to('cuda')
 
@@ -254,7 +254,7 @@ training_args = TrainingArguments(
     num_train_epochs=3,
     logging_steps=100,
     fp16=True,
-    report_to="none"
+    report_to="none",
 )
 
 trainer = SFTTrainer(
@@ -319,7 +319,7 @@ trainer.save_model(output_dir)
 # This step demonstrates the power of transfer learning and domain-specific fine-tuning in natural language processing, showing how we can adapt a general-purpose language model to specialized tasks.
 
 # %%
-input_text = "<|user>What does 'inheritance' mean?\n<|assistant|>\n"
+input_text = "<|user|>What does 'inheritance' mean?\n<|assistant|>\n"
 inputs = tokenizer(input_text, return_tensors="pt").to("cuda")
 stop_token = "<|endoftext|>"
 stop_token_id = tokenizer.encode(stop_token)[0]
