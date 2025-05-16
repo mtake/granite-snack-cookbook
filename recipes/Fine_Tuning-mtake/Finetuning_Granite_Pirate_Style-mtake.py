@@ -49,8 +49,8 @@ MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT = "ibm-granite/granite-3.3-2b-instruct"
 
 # input
 # @@@ahoaho XXX
-# model_checkpoint = MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT
-model_checkpoint = MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT
+model_checkpoint = MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT
+# model_checkpoint = MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT
 
 if model_checkpoint == MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT:
     system_tag = "<|system|>"
@@ -102,9 +102,9 @@ dataset_loadtime = timeit.default_timer() - start_time
 # %%
 start_time = timeit.default_timer()
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig
-from trl import SFTTrainer
+from trl import SFTTrainer, SFTConfig
 
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 
@@ -273,7 +273,7 @@ qlora_config = LoraConfig(
 max_seq_length = 250
 
 # Initialize the SFTTrainer
-training_args = TrainingArguments(
+training_args = SFTConfig(
     output_dir=output_dir,
     hub_model_id=hub_model_id,
     learning_rate=2e-4,
@@ -283,6 +283,7 @@ training_args = TrainingArguments(
     logging_steps=100,
     fp16=True,
     report_to="none",
+    max_seq_length=max_seq_length,
 )
 
 trainer = SFTTrainer(
@@ -294,7 +295,6 @@ trainer = SFTTrainer(
     peft_config = qlora_config,
     formatting_func=formatting_prompts_func,
     data_collator=collator,
-    max_seq_length=max_seq_length,
 )
 
 training_setup_loadtime = timeit.default_timer() - start_time
