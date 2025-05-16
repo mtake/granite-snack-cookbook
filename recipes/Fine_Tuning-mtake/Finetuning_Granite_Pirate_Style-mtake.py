@@ -35,11 +35,19 @@ import os
 HF_USER = "mikiotakeuchi"
 
 MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT = "ibm-granite/granite-3.0-2b-instruct"
+MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT = "ibm-granite/granite-3.3-2b-instruct"
 
 # input
-model_checkpoint = MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT
+# @@@ahoaho XXX
+# model_checkpoint = MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT
+model_checkpoint = MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT
 
 if model_checkpoint == MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT:
+    system_tag = "<|system|>"
+    user_tag = "<|user|>"
+    assistant_tag = "<|assistant|>"
+    eos_token = "<|endoftext|>"
+elif model_checkpoint == MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT:
     system_tag = "<|system|>"
     user_tag = "<|user|>"
     assistant_tag = "<|assistant|>"
