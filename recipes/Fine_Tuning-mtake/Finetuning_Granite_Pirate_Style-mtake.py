@@ -56,12 +56,14 @@ if model_checkpoint == MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT:
     system_tag = "<|system|>"
     user_tag = "<|user|>"
     assistant_tag = "<|assistant|>"
-    eos_token = "<|end_of_text|>"
+    eos_token = "<|endoftext|>"
+    # eos_token = "<|end_of_text|>"
 elif model_checkpoint == MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT:
     system_tag = "<|system|>"
     user_tag = "<|user|>"
     assistant_tag = "<|assistant|>"
-    eos_token = "<|end_of_text|>"
+    eos_token = "<|endoftext|>"
+    # eos_token = "<|end_of_text|>"
 
 model_name = os.path.basename(model_checkpoint)
 adapter_name = f"{model_name}-pirate-adapter"
