@@ -18,12 +18,22 @@
 # An experienced reader might note we could achieve the same thing with a system prompt, and he would be correct. We are doing this because it is difficult to show any new knowledge / actions in a fine-tuning using publicly available and permissively licensed datasets (because those datasets were often included in the initial training, so here we create a custom dataset and then show it had an effect when fine-tuned).
 
 # %%
-# %pip install -q "transformers>=4.45.2" datasets accelerate bitsandbytes peft "trl==0.12.0"
+# %%capture
+# %pip install "transformers>=4.45.2" datasets accelerate bitsandbytes peft "trl==0.12.0"
 
 # %%
 import transformers
 
 transformers.set_seed(42)
+
+# %% [markdown]
+# ## Timestamp
+
+# %%
+import datetime
+
+now = datetime.datetime.now()
+timestamp = now.strftime('%Y%m%d-%H%M%S')
 
 # %% [markdown]
 # ## Constants
@@ -46,19 +56,20 @@ if model_checkpoint == MODEL_CHECKPOINT_GRANITE_3_0_2B_INSTRUCT:
     system_tag = "<|system|>"
     user_tag = "<|user|>"
     assistant_tag = "<|assistant|>"
-    eos_token = "<|endoftext|>"
+    eos_token = "<|end_of_text|>"
 elif model_checkpoint == MODEL_CHECKPOINT_GRANITE_3_3_2B_INSTRUCT:
     system_tag = "<|system|>"
     user_tag = "<|user|>"
     assistant_tag = "<|assistant|>"
-    eos_token = "<|endoftext|>"
+    eos_token = "<|end_of_text|>"
 
 model_name = os.path.basename(model_checkpoint)
 adapter_name = f"{model_name}-pirate-adapter"
 
 # output
 hub_model_id = f"{HF_USER}/{adapter_name}"
-output_dir = f"results/{adapter_name}"
+# output_dir = f"results/{adapter_name}"
+output_dir = f"results/{adapter_name}_{timestamp}"
 
 # %% [markdown]
 # ## Dataset Preparation
@@ -99,14 +110,13 @@ bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
     bnb_4bit_use_double_quant=True,
-    bnb_4bit_compute_dtype=torch.float16 # if not set will throw a warning about slow speeds when training
+    bnb_4bit_compute_dtype=torch.float16,  # if not set will throw a warning about slow speeds when training
 )
 
 model = AutoModelForCausalLM.from_pretrained(
   model_checkpoint,
   quantization_config=bnb_config,
-  device_map="auto"
-
+  device_map="auto",
 )
 
 model_loadtime = timeit.default_timer() - start_time
@@ -160,7 +170,7 @@ def pirateify(batch):
   torch.cuda.empty_cache()
   return {
       'prompt': batch['prompt'],  # The original prompts (already a batch)
-      'response': pirate_responses  # The pirate responses, generated in batch
+      'response': pirate_responses,  # The pirate responses, generated in batch
   }
 
 
@@ -180,7 +190,7 @@ pirate_test = test_filtered.select(range(250)).map(pirateify, batched=True, batc
 # Save the new dataset
 pirate_dataset = datasets.DatasetDict({
     'train': pirate_train,
-    'test': pirate_test
+    'test': pirate_test,
 })
 
 
@@ -255,7 +265,7 @@ qlora_config = LoraConfig(
     lora_alpha=32,  # Scaling factor for the adapted layers
     target_modules=["q_proj", "v_proj"],  # Layer names to apply LoRA to
     lora_dropout=0.1,
-    bias="none"
+    bias="none",
 )
 
 max_seq_length = 250
@@ -337,16 +347,14 @@ trainer.save_model(output_dir)
 # %%
 input_text = f"{user_tag}What does 'inheritance' mean?\n{assistant_tag}\n"
 inputs = tokenizer(input_text, return_tensors="pt").to("cuda")
-stop_token = eos_token
-stop_token_id = tokenizer.encode(stop_token)[0]
-outputs = model.generate(**inputs, max_new_tokens=500, eos_token_id=stop_token_id)
+eos_token_id = tokenizer.encode(eos_token)[0]
+outputs = model.generate(**inputs, max_new_tokens=500, eos_token_id=eos_token_id)
 print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
 # %%
 input_ids= tokenizer(input_text, return_tensors="pt").input_ids.to("cuda")
 outputs = model.generate(input_ids=input_ids)
 print(tokenizer.decode(outputs[0]))
-
 
 # %% [markdown]
 # ### Sample Output
